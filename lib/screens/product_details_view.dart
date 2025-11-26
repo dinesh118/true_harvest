@@ -349,7 +349,10 @@ class _EachItemViewState extends ConsumerState<ProductDetailsView> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('Buy Now'),
+                child: const Text(
+                  'Buy Now',
+                  style: TextStyle(color: AppColors.white),
+                ),
               ),
             ),
           ],

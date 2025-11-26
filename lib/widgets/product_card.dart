@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_new/controllers/whishlist_provider.dart';
 import 'package:task_new/models/product_model.dart';
-import 'package:task_new/screens/product_details_view.dart';
+import 'package:task_new/routes/app_routes.dart';
 import 'package:task_new/utils/app_colors.dart';
 
 class ProductCard extends ConsumerWidget {
@@ -14,12 +14,7 @@ class ProductCard extends ConsumerWidget {
     final wishlistViewController = ref.read(wishlistProvider);
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProductDetailsView(product: product),
-          ),
-        );
+        AppRoutes.goToProductDetails(context, product);
       },
       child: Card(
         elevation: 0,
