@@ -15,44 +15,41 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final controller = ref.watch(groceryHomeControllerProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.lightBackground,
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(child: _HeaderSection()),
-          SliverToBoxAdapter(child: _CategorySelector()),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                'Featured Products',
-                style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.darkGreen,
-                ),
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(child: _HeaderSection()),
+        SliverToBoxAdapter(child: _CategorySelector()),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(
+              'Featured Products',
+              style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppColors.darkGreen,
               ),
             ),
           ),
-          SliverPadding(
-            padding: const EdgeInsets.all(16.0),
-            sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16.0,
-                mainAxisSpacing: 16.0,
-                childAspectRatio: 0.7,
-              ),
-              delegate: SliverChildBuilderDelegate((
-                BuildContext context,
-                int index,
-              ) {
-                final Product product = controller.filteredProducts[index];
-                return ProductCard(product: product);
-              }, childCount: controller.filteredProducts.length),
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.all(16.0),
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 16.0,
+              mainAxisSpacing: 16.0,
+              childAspectRatio: 0.7,
             ),
+            delegate: SliverChildBuilderDelegate((
+              BuildContext context,
+              int index,
+            ) {
+              final Product product = controller.filteredProducts[index];
+              return ProductCard(product: product);
+            }, childCount: controller.filteredProducts.length),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -96,14 +93,6 @@ class _HeaderSection extends ConsumerWidget {
               ),
               Row(
                 children: <Widget>[
-                  IconButton(
-                    color: Colors.white24,
-
-                    icon: const Icon(Icons.person_outline, color: Colors.white),
-                    onPressed: () {
-                      // Callback for profile icon
-                    },
-                  ),
                   IconButton(
                     color: Colors.red,
 

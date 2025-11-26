@@ -125,8 +125,8 @@ class GroceryHomeController extends ChangeNotifier {
           "Ideal for daily meals",
         ],
         units: [
-          ProductUnit(unitName: "100ml", price: 15), // ₹15
-          ProductUnit(unitName: "500ml", price: 55), // ₹55
+          ProductUnit(unitName: "500ml", price: 70), // ₹15
+          ProductUnit(unitName: "1l", price: 150), // ₹55
         ],
       ),
 
