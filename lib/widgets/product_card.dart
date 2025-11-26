@@ -17,7 +17,7 @@ class ProductCard extends ConsumerWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => EachItemView(product: product),
+            builder: (context) => ProductDetailsView(product: product),
           ),
         );
       },

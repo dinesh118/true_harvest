@@ -9,15 +9,15 @@ import 'package:task_new/screens/cart_screen.dart';
 import 'package:task_new/utils/app_colors.dart';
 import 'package:task_new/widgets/quantity_handler.dart';
 
-class EachItemView extends ConsumerStatefulWidget {
+class ProductDetailsView extends ConsumerStatefulWidget {
   final Product product;
-  const EachItemView({super.key, required this.product});
+  const ProductDetailsView({super.key, required this.product});
 
   @override
-  ConsumerState<EachItemView> createState() => _EachItemViewState();
+  ConsumerState<ProductDetailsView> createState() => _EachItemViewState();
 }
 
-class _EachItemViewState extends ConsumerState<EachItemView> {
+class _EachItemViewState extends ConsumerState<ProductDetailsView> {
   int quantity = 1;
   final ScrollController _scrollController = ScrollController();
   // bool _showTitle = false;

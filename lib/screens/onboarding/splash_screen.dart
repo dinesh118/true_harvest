@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:task_new/screens/auth/auth_wrapper.dart';
+import 'package:task_new/routes/app_routes.dart';
 import 'package:task_new/utils/app_colors.dart';
 import 'package:task_new/utils/app_constants.dart';
 
@@ -24,12 +24,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     if (!mounted) return;
 
-    // User is not logged in or verification failed, go to onboarding
-    // Navigator.pushReplacementNamed(context, /* AppRoutes.onBoardingScreen */);
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => AuthWrapper()),
-    );
+    // Navigate to auth wrapper using named routes
+    AppRoutes.navigateAndReplace(context, AppRoutes.authWrapper);
   }
 
   @override

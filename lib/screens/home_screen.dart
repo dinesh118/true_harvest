@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:google_fonts/google_fonts.dart'; // For Montserrat font
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_new/controllers/cart_controller.dart';
+import 'package:task_new/routes/app_routes.dart';
 import 'package:task_new/utils/app_colors.dart';
 import 'package:task_new/widgets/product_card.dart';
 
@@ -138,7 +139,7 @@ class _HeaderSectionState extends ConsumerState<_HeaderSection> {
                       color: Colors.white,
                     ),
                     onPressed: () {
-                      // Callback for cart icon
+                      AppRoutes.goToCart(context);
                     },
                   ),
                   Positioned(

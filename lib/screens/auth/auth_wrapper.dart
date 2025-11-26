@@ -2,9 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:task_new/screens/auth/login_screen.dart';
-import 'package:task_new/screens/home_screen.dart';
-import 'package:task_new/screens/main_screen.dart';
+import 'package:task_new/routes/app_routes.dart';
 
 class AuthWrapper extends ConsumerWidget {
   const AuthWrapper({super.key});
@@ -17,11 +15,17 @@ class AuthWrapper extends ConsumerWidget {
         if (snapshot.connectionState == ConnectionState.active) {
           final user = snapshot.data;
           if (user != null) {
-            // User is signed in
-            return const MainScreen();
+            // User is signed in - navigate to main screen
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              AppRoutes.navigateAndClearStack(context, AppRoutes.main);
+            });
+            return const Scaffold(body: Center(child: CircularProgressIndicator()));
           }
-          // User is not signed in
-          return LoginScreen();
+          // User is not signed in - navigate to login
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            AppRoutes.navigateAndReplace(context, AppRoutes.login);
+          });
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
         // Show loading indicator while checking auth state
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
