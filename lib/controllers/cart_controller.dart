@@ -13,11 +13,19 @@ class CartProvider with ChangeNotifier {
 
   List<CartItem> get items => _items;
 
-  double get subtotal {
-    return _items.fold(0, (sum, item) => sum + item.price);
+  double get totalPrice {
+    return _items.fold(0, (sum, item) => sum + item.totalPrice);
   }
 
+  double get subtotal => totalPrice;
+
   int get itemCount => _items.length;
+
+  // Clear all items from cart
+  Future<void> clearCart() async {
+    _items.clear();
+    notifyListeners();
+  }
 
   void addToCart(Product product, String unit) {
     final existingIndex = _items.indexWhere(
@@ -71,11 +79,6 @@ class CartProvider with ChangeNotifier {
         CartItem(product: product, selectedUnit: unit, quantity: newQuantity),
       );
     }
-    notifyListeners();
-  }
-
-  void clearCart() {
-    _items.clear();
     notifyListeners();
   }
 }

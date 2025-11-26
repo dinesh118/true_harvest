@@ -20,6 +20,9 @@ class CartItem {
           .price *
       quantity;
 
+  // Alias for totalPrice to maintain compatibility
+  double get totalPrice => price;
+
   // Copy with method for immutability
   CartItem copyWith({Product? product, String? selectedUnit, int? quantity}) {
     return CartItem(

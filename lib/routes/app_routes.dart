@@ -13,6 +13,8 @@ import 'package:task_new/screens/subscription_plans_screen.dart';
 import 'package:task_new/screens/custom_subscription_screen.dart';
 import 'package:task_new/screens/subscription_details_screen.dart';
 import 'package:task_new/screens/delivery_schedule_screen.dart';
+import 'package:task_new/screens/checkout_screen.dart';
+import 'package:task_new/screens/payment_success_screen.dart';
 import 'package:task_new/screens/wishlist_screen.dart';
 import 'package:task_new/models/product_model.dart';
 import 'package:task_new/models/subscription_model.dart';
@@ -26,6 +28,8 @@ class AppRoutes {
   static const String main = '/main';
   static const String home = '/home';
   static const String cart = '/cart';
+  static const String checkout = '/checkout';
+  static const String paymentSuccess = '/payment-success';
   static const String productDetails = '/product-details';
   static const String profile = '/profile';
   static const String subscription = '/subscription';
@@ -82,6 +86,18 @@ class AppRoutes {
       case cart:
         return MaterialPageRoute(
           builder: (_) => const CartScreen(),
+          settings: settings,
+        );
+
+      case checkout:
+        return MaterialPageRoute(
+          builder: (_) => const CheckoutScreen(),
+          settings: settings,
+        );
+
+      case paymentSuccess:
+        return MaterialPageRoute(
+          builder: (_) => const PaymentSuccessScreen(),
           settings: settings,
         );
 

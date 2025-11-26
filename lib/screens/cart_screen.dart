@@ -297,8 +297,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            // Handle checkout
-                            // You can navigate to checkout screen here
+                            Navigator.pushNamed(context, '/checkout');
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.darkGreen,
@@ -312,6 +311,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
+                              color: AppColors.lightBackground,
                             ),
                           ),
                         ),

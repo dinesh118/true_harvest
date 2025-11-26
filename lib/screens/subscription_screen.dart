@@ -52,29 +52,24 @@ class SubscriptionScreen extends ConsumerWidget {
 
           // Content
           if (activeSubscriptions.isEmpty)
-            SliverFillRemaining(
-              child: _buildEmptyState(context),
-            )
+            SliverFillRemaining(child: _buildEmptyState(context))
           else
             SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  if (index == 0) {
-                    return _buildQuickActions(context);
-                  }
-                  final subscription = activeSubscriptions[index - 1];
-                  return _buildSubscriptionCard(context, ref, subscription);
-                },
-                childCount: activeSubscriptions.length + 1,
-              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                if (index == 0) {
+                  return _buildQuickActions(context);
+                }
+                final subscription = activeSubscriptions[index - 1];
+                return _buildSubscriptionCard(context, ref, subscription);
+              }, childCount: activeSubscriptions.length + 1),
             ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _navigateToPlans(context),
         backgroundColor: AppColors.darkGreen,
-        icon: const Icon(Icons.add),
-        label: const Text('New Plan'),
+        icon: const Icon(Icons.add, color: AppColors.cream),
+        label: const Text('New Plan', style: TextStyle(color: AppColors.cream)),
       ),
     );
   }
@@ -103,10 +98,7 @@ class SubscriptionScreen extends ConsumerWidget {
             Text(
               'Start your journey to fresh, organic products delivered to your doorstep',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
@@ -158,10 +150,7 @@ class SubscriptionScreen extends ConsumerWidget {
         children: [
           const Text(
             'Quick Actions',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           Row(
@@ -216,18 +205,11 @@ class SubscriptionScreen extends ConsumerWidget {
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              size: 32,
-              color: AppColors.darkGreen,
-            ),
+            Icon(icon, size: 32, color: AppColors.darkGreen),
             const SizedBox(height: 8),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
             ),
           ],
@@ -277,10 +259,7 @@ class SubscriptionScreen extends ConsumerWidget {
                       ),
                       Text(
                         subscription.plan.description,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -325,7 +304,9 @@ class SubscriptionScreen extends ConsumerWidget {
                         : () => _pauseSubscription(ref, subscription.id),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(
-                        color: subscription.isPaused ? Colors.green : Colors.orange,
+                        color: subscription.isPaused
+                            ? Colors.green
+                            : Colors.orange,
                       ),
                     ),
                     icon: Icon(
@@ -341,7 +322,8 @@ class SubscriptionScreen extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => _showSubscriptionDetails(context, subscription),
+                    onPressed: () =>
+                        _showSubscriptionDetails(context, subscription),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: AppColors.darkGreen),
                     ),
@@ -360,10 +342,7 @@ class SubscriptionScreen extends ConsumerWidget {
                       side: const BorderSide(color: Colors.red),
                     ),
                     icon: const Icon(Icons.cancel_outlined, size: 16),
-                    label: const Text(
-                      'Cancel',
-                      style: TextStyle(fontSize: 12),
-                    ),
+                    label: const Text('Cancel', style: TextStyle(fontSize: 12)),
                   ),
                 ),
               ],
@@ -417,28 +396,18 @@ class SubscriptionScreen extends ConsumerWidget {
   Widget _buildInfoItem(String label, String value, IconData icon) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: AppColors.darkGreen,
-        ),
+        Icon(icon, size: 16, color: AppColors.darkGreen),
         const SizedBox(width: 8),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
             Text(
               value,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -462,14 +431,21 @@ class SubscriptionScreen extends ConsumerWidget {
     AppRoutes.navigateTo(context, '/delivery-schedule');
   }
 
-  void _showSubscriptionDetails(BuildContext context, UserSubscription subscription) {
-    AppRoutes.navigateTo(context, '/subscription-details', arguments: subscription);
+  void _showSubscriptionDetails(
+    BuildContext context,
+    UserSubscription subscription,
+  ) {
+    AppRoutes.navigateTo(
+      context,
+      '/subscription-details',
+      arguments: subscription,
+    );
   }
 
   Future<void> _pauseSubscription(WidgetRef ref, String subscriptionId) async {
     final controller = ref.read(subscriptionProvider);
     final success = await controller.pauseSubscription(subscriptionId);
-    
+
     if (success) {
       ScaffoldMessenger.of(ref.context).showSnackBar(
         const SnackBar(
@@ -483,7 +459,7 @@ class SubscriptionScreen extends ConsumerWidget {
   Future<void> _resumeSubscription(WidgetRef ref, String subscriptionId) async {
     final controller = ref.read(subscriptionProvider);
     final success = await controller.resumeSubscription(subscriptionId);
-    
+
     if (success) {
       ScaffoldMessenger.of(ref.context).showSnackBar(
         const SnackBar(
@@ -497,7 +473,7 @@ class SubscriptionScreen extends ConsumerWidget {
   Future<void> _cancelSubscription(WidgetRef ref, String subscriptionId) async {
     final controller = ref.read(subscriptionProvider);
     final success = await controller.cancelSubscription(subscriptionId);
-    
+
     if (success) {
       ScaffoldMessenger.of(ref.context).showSnackBar(
         const SnackBar(
