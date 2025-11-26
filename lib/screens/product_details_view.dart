@@ -1,24 +1,30 @@
 // lib/screens/each_item_view.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:task_new/controllers/cart_controller.dart';
+import 'package:task_new/controllers/whishlist_provider.dart';
+import 'package:task_new/models/cart_item.dart';
 import 'package:task_new/models/product_model.dart';
 import 'package:task_new/screens/cart_screen.dart';
 import 'package:task_new/utils/app_colors.dart';
 import 'package:task_new/widgets/quantity_handler.dart';
 
-class EachItemView extends StatefulWidget {
+class EachItemView extends ConsumerStatefulWidget {
   final Product product;
   const EachItemView({super.key, required this.product});
 
   @override
-  State<EachItemView> createState() => _EachItemViewState();
+  ConsumerState<EachItemView> createState() => _EachItemViewState();
 }
 
-class _EachItemViewState extends State<EachItemView> {
+class _EachItemViewState extends ConsumerState<EachItemView> {
   int quantity = 1;
   final ScrollController _scrollController = ScrollController();
   // bool _showTitle = false;
   int selectedUnitIndex = 0;
-
+  late final wishlistProviderController = ref.read(wishlistProvider);
+  late final cartProviderController = ref.read(cartProvider);
+  bool _showGoToCart = false;
   @override
   void initState() {
     super.initState();
@@ -42,6 +48,19 @@ class _EachItemViewState extends State<EachItemView> {
 
   @override
   Widget build(BuildContext context) {
+    final cartItems = ref.watch(cartProvider.select((va) => va.items));
+    // Find the item in cart or use initial quantity
+    final cartItem = cartItems.firstWhere(
+      (item) =>
+          item.product.id == widget.product.id &&
+          item.selectedUnit == widget.product.units[selectedUnitIndex].unitName,
+      orElse: () => CartItem(
+        product: widget.product,
+        selectedUnit: widget.product.units[selectedUnitIndex].unitName,
+        quantity: 1,
+      ),
+    );
+
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
       body: CustomScrollView(
@@ -63,20 +82,18 @@ class _EachItemViewState extends State<EachItemView> {
               ),
             ),
             actions: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: CircleAvatar(
-                  backgroundColor: Colors.black54,
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.favorite_border,
-                      color: Colors.white,
-                    ),
-                    onPressed: () {
-                      // TODO: Add to favorites
-                    },
-                  ),
+              IconButton(
+                icon: Icon(
+                  wishlistProviderController.isInWishlist(widget.product)
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                  color: wishlistProviderController.isInWishlist(widget.product)
+                      ? Colors.red
+                      : Colors.white,
                 ),
+                onPressed: () {
+                  wishlistProviderController.toggleWishlist(widget.product);
+                },
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
@@ -175,12 +192,22 @@ class _EachItemViewState extends State<EachItemView> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
-                  // QuantityHandler(
-                  //   quantity: quantity,
-                  //   onChanged: (newQuantity) {
-                  //     setState(() => quantity = newQuantity);
-                  //   },
-                  // ),
+                  // Then in your widget tree:
+                  // In your ProductDetailsView build method
+                  // In your product_details_view.dart, update the QuantityHandler usage:
+                  QuantityHandler(
+                    product: widget.product,
+                    unit: widget.product.units[selectedUnitIndex].unitName,
+                    initialQuantity: cartItem.quantity,
+                    onQuantityChanged: (newQuantity) {
+                      // final cartController = ref.read(cartProvider);
+                      cartProviderController.updateQuantity(
+                        widget.product,
+                        widget.product.units[selectedUnitIndex].unitName,
+                        newQuantity,
+                      );
+                    },
+                  ),
                   const SizedBox(height: 25),
 
                   // Description
@@ -268,20 +295,41 @@ class _EachItemViewState extends State<EachItemView> {
           children: [
             // Add to Cart Button
             Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Add to cart functionality
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                icon: const Icon(Icons.shopping_cart_outlined),
-                label: const Text('Add to Cart'),
-              ),
+              child: _showGoToCart
+                  ? ElevatedButton(
+                      key: const ValueKey("goToCart"),
+                      onPressed: _goToCart,
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+
+                        backgroundColor: AppColors.darkGreen,
+                        minimumSize: const Size(double.infinity, 42),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        "Go to Cart",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                  : ElevatedButton.icon(
+                      onPressed: _handleAddToCart,
+
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(Icons.shopping_cart_outlined),
+                      label: const Text('Add to Cart'),
+                    ),
             ),
             const SizedBox(width: 16),
             // Buy Now Button
@@ -307,6 +355,25 @@ class _EachItemViewState extends State<EachItemView> {
           ],
         ),
       ),
+    );
+  }
+
+  void _handleAddToCart() {
+    // final cartProviderController = ref.read(cartProvider);
+
+    final selectedUnit = widget.product.units[selectedUnitIndex];
+
+    cartProviderController.addToCart(widget.product, selectedUnit.unitName);
+
+    setState(() {
+      _showGoToCart = true;
+    });
+  }
+
+  void _goToCart() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CartScreen()),
     );
   }
 }

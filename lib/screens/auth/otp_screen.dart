@@ -1,7 +1,7 @@
 // lib/screens/auth/otp_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:task_new/controllers/auth_provider.dart';
+import 'package:task_new/controllers/auth_controller.dart';
 import 'package:task_new/screens/home_screen.dart';
 import 'package:task_new/screens/main_screen.dart';
 import 'package:task_new/utils/app_colors.dart';

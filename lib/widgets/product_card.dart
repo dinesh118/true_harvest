@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:task_new/controllers/products_controller.dart';
+import 'package:task_new/controllers/whishlist_provider.dart';
 import 'package:task_new/models/product_model.dart';
-import 'package:task_new/screens/each_item_view.dart';
+import 'package:task_new/screens/product_details_view.dart';
 import 'package:task_new/utils/app_colors.dart';
-import 'package:task_new/utils/app_constants.dart';
 
 class ProductCard extends ConsumerWidget {
   final Product product;
@@ -12,10 +11,7 @@ class ProductCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final GroceryHomeController controller = ref.read(
-      groceryHomeControllerProvider,
-    );
-
+    final wishlistViewController = ref.read(wishlistProvider);
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -59,24 +55,27 @@ class ProductCard extends ConsumerWidget {
                     Positioned(
                       top: 8,
                       right: 8,
-                      child: GestureDetector(
-                        onTap: () => controller.toggleFavorite(product.id),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.8),
-                            shape: BoxShape.circle,
-                          ),
-                          padding: const EdgeInsets.all(4.0),
-                          child: Icon(
-                            product.isFavorite
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            color: product.isFavorite
-                                ? Colors.red
-                                : Colors.grey,
-                            size: 20,
-                          ),
-                        ),
+                      child: Consumer(
+                        builder: (context, ref, child) {
+                          final wishlist = ref.watch(wishlistProvider);
+                          final wishlistController = ref.read(
+                            wishlistProvider.notifier,
+                          );
+
+                          return IconButton(
+                            icon: Icon(
+                              wishlist.isInWishlist(product)
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: wishlist.isInWishlist(product)
+                                  ? Colors.red
+                                  : Colors.grey,
+                            ),
+                            onPressed: () {
+                              wishlistController.toggleWishlist(product);
+                            },
+                          );
+                        },
                       ),
                     ),
                   ],

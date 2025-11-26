@@ -13,6 +13,9 @@ class GroceryHomeController extends ChangeNotifier {
   final List<ProductCategory> _categories;
   final List<Product> _products;
   String _searchValue = "";
+
+  String get searchValue => _searchValue;
+
   GroceryHomeController()
     : _selectedCategory = 'All',
       _categories = _initialCategories(),
@@ -23,16 +26,35 @@ class GroceryHomeController extends ChangeNotifier {
       List<ProductCategory>.unmodifiable(_categories);
   List<Product> get products => List<Product>.unmodifiable(_products);
 
-  List<Product> get filteredProducts {
-    if (_selectedCategory == 'All') {
-      // if (_searchValue.trim().isNotEmpty) {
-      return _products;
+  void clearSearch() {
+    _searchValue = '';
+    notifyListeners();
+  }
 
-      // }
+  List<Product> get filteredProducts {
+    List<Product> filtered = _products;
+
+    // Apply category filter
+    if (_selectedCategory != 'All') {
+      filtered = filtered
+          .where((p) => p.category == _selectedCategory)
+          .toList();
     }
-    return _products
-        .where((Product product) => product.category == _selectedCategory)
-        .toList();
+
+    // Apply search filter
+    // Apply search filter
+    if (_searchValue.trim().isNotEmpty) {
+      final query = _searchValue.toLowerCase().replaceAll(" ", "");
+
+      filtered = filtered.where((p) {
+        final name = p.name.toLowerCase().replaceAll(" ", "");
+        final desc = p.description.toLowerCase().replaceAll(" ", "");
+
+        return name.contains(query) || desc.contains(query);
+      }).toList();
+    }
+
+    return filtered;
   }
 
   List<Product> getListData(String searchValue, List<Product> data) {
@@ -92,7 +114,7 @@ class GroceryHomeController extends ChangeNotifier {
       Product(
         id: 'p1',
         category: 'Milk',
-        name: 'Organic Whole Milk',
+        name: 'Organic Milk',
         imageUrl: 'assets/products/milk.jpeg',
         isFavorite: false,
         description:

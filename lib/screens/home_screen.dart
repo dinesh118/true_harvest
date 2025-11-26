@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:google_fonts/google_fonts.dart'; // For Montserrat font
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:task_new/controllers/cart_controller.dart';
 import 'package:task_new/utils/app_colors.dart';
 import 'package:task_new/widgets/product_card.dart';
 
@@ -54,11 +55,47 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _HeaderSection extends ConsumerWidget {
+class _HeaderSection extends ConsumerStatefulWidget {
   const _HeaderSection();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_HeaderSection> createState() => _HeaderSectionState();
+}
+
+class _HeaderSectionState extends ConsumerState<_HeaderSection> {
+  late TextEditingController searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    final searchValue = ref.read(groceryHomeControllerProvider).searchValue;
+    searchController = TextEditingController(text: searchValue);
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant _HeaderSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final newValue = ref.read(groceryHomeControllerProvider).searchValue;
+
+    if (searchController.text != newValue) {
+      searchController.text = newValue;
+      searchController.selection = TextSelection.collapsed(
+        offset: newValue.length,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cartViewController = ref.watch(cartProvider);
+
     return Container(
       padding: const EdgeInsets.only(
         top: 50.0,
@@ -91,7 +128,7 @@ class _HeaderSection extends ConsumerWidget {
                   ),
                 ],
               ),
-              Row(
+              Stack(
                 children: <Widget>[
                   IconButton(
                     color: Colors.red,
@@ -104,30 +141,60 @@ class _HeaderSection extends ConsumerWidget {
                       // Callback for cart icon
                     },
                   ),
+                  Positioned(
+                    right: 8,
+                    top: 2,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      child: Text(
+                        cartViewController.itemCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 20.0),
           TextField(
+            controller: searchController,
             onChanged: (value) {
-              if (value.trim().isNotEmpty) {
-                ref.read(groceryHomeControllerProvider).updateSearch(value);
-              }
+              ref
+                  .read(groceryHomeControllerProvider.notifier)
+                  .updateSearch(value);
             },
             decoration: InputDecoration(
               hintText: 'Search products...',
-              hintStyle: const TextStyle(color: Colors.grey),
-              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+              prefixIcon: Icon(Icons.search),
+              suffixIcon: searchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () {
+                        ref
+                            .read(groceryHomeControllerProvider.notifier)
+                            .clearSearch();
+                      },
+                    )
+                  : null,
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30.0),
+                borderRadius: BorderRadius.circular(30),
                 borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 0,
-                horizontal: 20,
               ),
             ),
           ),

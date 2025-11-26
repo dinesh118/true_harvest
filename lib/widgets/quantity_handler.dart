@@ -1,49 +1,82 @@
-// import 'package:flutter/material.dart';
-// import 'package:task_new/utils/app_colors.dart';
+// lib/widgets/quantity_handler.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart' hide Consumer;
+import 'package:task_new/controllers/cart_controller.dart';
+import 'package:task_new/models/cart_item.dart';
+import 'package:task_new/models/product_model.dart';
 
-// class QuantitySelector extends StatelessWidget {
-//   final int quantity;
-//   final VoidCallback onAdd;
-//   final VoidCallback onRemove;
+class QuantityHandler extends ConsumerWidget {
+  final Product product;
+  final String unit;
+  final int initialQuantity;
+  final Function(int) onQuantityChanged;
 
-//   const QuantitySelector({
-//     super.key,
-//     required this.quantity,
-//     required this.onAdd,
-//     required this.onRemove,
-//   });
+  const QuantityHandler({
+    Key? key,
+    required this.product,
+    required this.unit,
+    required this.initialQuantity,
+    required this.onQuantityChanged,
+  }) : super(key: key);
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Row(
-//       children: [
-//         _circleButton(Icons.remove, onRemove, AppColors.lightBackground),
-//         const SizedBox(width: 12), // reduced
-//         Text(
-//           quantity.toString(),
-//           style: const TextStyle(
-//             fontSize: 18, // slightly smaller
-//             fontWeight: FontWeight.bold,
-//           ),
-//         ),
-//         const SizedBox(width: 12), // reduced
-//         _circleButton(Icons.add, onAdd, AppColors.darkGreen),
-//       ],
-//     );
-//   }
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final cartController = ref.watch(cartProvider);
+        final cartItem = cartController.items.firstWhere(
+          (item) => item.product.id == product.id && item.selectedUnit == unit,
+          orElse: () => CartItem(
+            product: product,
+            selectedUnit: unit,
+            quantity: initialQuantity,
+          ),
+        );
 
-//   Widget _circleButton(IconData icon, VoidCallback onTap, Color color) {
-//     return InkWell(
-//       onTap: onTap,
-//       child: CircleAvatar(
-//         radius: 12, // smaller button
-//         backgroundColor: color,
-//         child: Icon(
-//           icon,
-//           color: Colors.white,
-//           size: 13, // smaller icon
-//         ),
-//       ),
-//     );
-//   }
-// }
+        return Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Decrease button
+              IconButton(
+                icon: const Icon(Icons.remove_circle_outline),
+                onPressed: () {
+                  final newQuantity = cartItem.quantity > 1
+                      ? cartItem.quantity - 1
+                      : 1;
+                  onQuantityChanged(newQuantity);
+                },
+              ),
+
+              // Quantity display
+              Container(
+                width: 40,
+                alignment: Alignment.center,
+                child: Text(
+                  '${cartItem.quantity}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+
+              // Increase button
+              IconButton(
+                icon: const Icon(Icons.add_circle_outline),
+                onPressed: () {
+                  onQuantityChanged(cartItem.quantity + 1);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}

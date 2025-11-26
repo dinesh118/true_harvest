@@ -21,6 +21,7 @@ class AppColors {
   //common colors
   static const Color black = Colors.black;
   static const Color white = Colors.white;
+  static const Color red = Colors.red;
 
   static const MaterialColor darkGreenSwatch =
       MaterialColor(0xFF15352C, <int, Color>{
