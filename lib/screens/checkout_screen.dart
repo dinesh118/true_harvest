@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:task_new/controllers/address_controller.dart';
 import 'package:task_new/controllers/cart_controller.dart';
 import 'package:task_new/controllers/verification_controller.dart';
 import 'package:task_new/controllers/coupon_card_controller.dart';
+import 'package:task_new/models/address_model.dart';
 import 'package:task_new/screens/apply_coupon_card_screen.dart';
 import 'package:task_new/screens/payment_success_screen.dart';
 import 'package:task_new/services/razorpay_service.dart';
 import 'package:task_new/utils/app_colors.dart';
+import 'package:task_new/widgets/custom_textfield.dart';
+import 'package:task_new/widgets/section_header.dart';
 import 'package:task_new/widgets/verification_dialog.dart';
 import 'package:task_new/widgets/custom_alert_dialogue.dart';
 import 'package:task_new/widgets/discount_offer_card.dart';
@@ -35,15 +39,23 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
-    // Set default values
-    _addressController.text = "123 Dairy Lane, Fresh Valley, CA 94102";
-    _nameController.text = "John Doe";
-    _emailController.text = "customer@trueharvest.com";
-    _phoneController.text = "9876543210";
-
+    
     // Initialize Razorpay service
+_loadSavedAddress();
     _initializeRazorpay();
   }
+void _loadSavedAddress() {
+    final addressController = ref.read(addressProvider);
+    if (addressController.address != null) {
+      final savedAddress = addressController.address!;
+      _addressController.text = savedAddress.fullAddress;
+      _nameController.text = savedAddress.name;
+      _emailController.text = savedAddress.email;
+      _phoneController.text = savedAddress.phone;
+      _instructionsController.text = savedAddress.deliveryInstructions ?? '';
+    }
+  }
+
 
   void _initializeRazorpay() {
     _razorPayService = RazorPayService(
@@ -92,6 +104,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final verificationService = ref.watch(verificationServiceProvider);
     final coupon = ref.watch(couponProvider);
     final subtotal = cartController.subtotal;
+ final addressController = ref.watch(addressProvider);
     final deliveryFee = _getDeliveryFee();
     final totalBeforeDiscount = subtotal + deliveryFee;
 
@@ -107,6 +120,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     // Calculate final total with all discounts applied
     final total =
         totalBeforeDiscount - verificationDiscount - coupon.discountAmount;
+//Sync controllers when address changes
+    if (addressController.address != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final saved = addressController.address!;
+        if (_addressController.text != saved.fullAddress) {
+          _addressController.text = saved.fullAddress;
+          _nameController.text = saved.name;
+          _emailController.text = saved.email;
+          _phoneController.text = saved.phone;
+          _instructionsController.text = saved.deliveryInstructions ?? '';
+        }
+      });
+    }
 
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
@@ -176,13 +202,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                       ),
                                     ),
                                     const SizedBox(height: 4),
+                                    Column(
+
+                                      children: [
+
+                                    
                                     Text(
-                                      _addressController.text,
+                                      addressController.address?.fullAddress ?? _addressController.text,
                                       style: TextStyle(
                                         fontSize: 14,
                                         color: Colors.grey[600],
                                       ),
                                     ),
+                                    ],)
                                   ],
                                 ),
                               ),
@@ -451,8 +483,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     String value,
     String title,
     String subtitle,
-    IconData icon,
-  ) {
+    IconData icon, {
+    bool isSelected = false,
+  }) {
     final isCurrentSelected = selectedPaymentMethod == value;
 
     return GestureDetector(
@@ -564,51 +597,401 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   }
 
   void _showAddressDialog() {
+    final savedAddress = ref.read(addressProvider);
+
+    final _dialogFormKey = GlobalKey<FormState>();
+
+    final nameCtrl = TextEditingController(text: savedAddress.address?.name ?? _nameController.text);
+    final emailCtrl = TextEditingController(text: savedAddress.address?.email ?? _emailController.text);
+    final phoneCtrl = TextEditingController(text: savedAddress.address?.phone ?? _phoneController.text);
+    final streetCtrl = TextEditingController(text: savedAddress.address?.street ?? '');
+    final apartmentCtrl = TextEditingController(text: savedAddress.address?.apartment ?? '');
+    final cityCtrl = TextEditingController(text: savedAddress.address?.city ?? '');
+    final stateCtrl = TextEditingController(text: savedAddress.address?.state ?? '');
+    final zipCtrl = TextEditingController(text: savedAddress.address?.zip ?? '');
+    final countryCtrl = TextEditingController(text: savedAddress.address?.country ?? 'India');
+    final instructionsCtrl = TextEditingController(text: savedAddress.address?.deliveryInstructions ?? _instructionsController.text);
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Edit Address'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _addressController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Delivery Address',
-                border: OutlineInputBorder(),
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.9,
+            maxWidth: MediaQuery.of(context).size.width * 0.95,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.darkGreen,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_on, color: Colors.white, size: 28),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Add Delivery Address',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Fill in your complete address details',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: const Icon(Icons.close, color: Colors.white),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _instructionsController,
-              maxLines: 2,
-              decoration: const InputDecoration(
-                labelText: 'Delivery Instructions (Optional)',
-                border: OutlineInputBorder(),
+              // Form Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Form(
+                    key: _dialogFormKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Contact Information Section
+                        SectionHeader(
+                          icon: Icons.person_outline,
+                          title: 'Contact Information',
+                          subtitle: 'Your details for order updates',
+                        ),
+                        const SizedBox(height: 16),
+                        CustomTextField(
+                          label: 'First Name',
+                          controller: nameCtrl,
+                          hintText: 'Enter your name',
+                          prefixIcon: Icons.person,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your name';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'Email Address',
+                          controller: emailCtrl,
+                          hintText: 'you@example.com',
+                          prefixIcon: Icons.email_outlined,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your email';
+                            }
+                            if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                              return 'Please enter a valid email';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'Phone Number',
+                          controller: phoneCtrl,
+                          hintText: '9876543210',
+                          prefixIcon: Icons.phone_outlined,
+                          keyboardType: TextInputType.phone,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your phone number';
+                            }
+                            if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
+                              return 'Enter a valid 10-digit number';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        // Shipping Address Section
+                        SectionHeader(
+                          icon: Icons.home_outlined,
+                          title: 'Shipping Address',
+                          subtitle: 'Where should we deliver?',
+                        ),
+                        const SizedBox(height: 16),
+                        CustomTextField(
+                          label: 'Street Address',
+                          controller: streetCtrl,
+                          hintText: '123 Main Street',
+                          prefixIcon: Icons.location_on_outlined,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter street address';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        CustomTextField(
+                          label: 'Apartment, Suite, etc.',
+                          controller: apartmentCtrl,
+                          hintText: 'Plot No. / Apartment',
+                          prefixIcon: Icons.apartment_outlined,
+                          isOptional: true,
+                          validator: (value) => null,
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CustomTextField(
+                                label: 'City',
+                                controller: cityCtrl,
+                                hintText: 'Your City',
+                                prefixIcon: Icons.location_city,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Required';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: CustomTextField(
+                                label: 'State',
+                                controller: stateCtrl,
+                                hintText: 'State',
+                                prefixIcon: Icons.map_outlined,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Required';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CustomTextField(
+                                label: 'ZIP Code',
+                                controller: zipCtrl,
+                                hintText: '110001',
+                                prefixIcon: Icons.mail_outline,
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Required';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: CustomTextField(
+                                label: 'Country',
+                                controller: countryCtrl,
+                                hintText: 'India',
+                                prefixIcon: Icons.public,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Required';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        // Delivery Instructions Section
+                        SectionHeader(
+                          icon: Icons.note_outlined,
+                          title: 'Delivery Instructions',
+                          subtitle: 'Optional but helpful',
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.grey[300]!,
+                              width: 1,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                            color: Colors.grey[50],
+                          ),
+                          child: TextField(
+                            controller: instructionsCtrl,
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              hintText:
+                                  'E.g., Ring doorbell twice, Leave at gate, etc.',
+                              hintStyle: TextStyle(color: Colors.grey[400]),
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.all(16),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ],
+              // Action Buttons
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(color: Colors.grey[200]!),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: Colors.grey[300]!),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_dialogFormKey.currentState!.validate()) {
+                            final newAddress = AddressModel(
+                              name: nameCtrl.text.trim(),
+                              email: emailCtrl.text.trim(),
+                              phone: phoneCtrl.text.trim(),
+                              street: streetCtrl.text.trim(),
+                              apartment: apartmentCtrl.text.trim(),
+                              city: cityCtrl.text.trim(),
+                              state: stateCtrl.text.trim(),
+                              zip: zipCtrl.text.trim(),
+                              country: countryCtrl.text.trim(),
+                              deliveryInstructions: instructionsCtrl.text.trim(),
+                            );
+                            ref.read(addressProvider).updateAddress(newAddress);
+                            // update the quick display fields in checkout
+                            setState(() {
+                              _nameController.text = nameCtrl.text.trim();
+                              _emailController.text = emailCtrl.text.trim();
+                              _phoneController.text = phoneCtrl.text.trim();
+                              _addressController.text = [
+                                streetCtrl.text.trim(),
+                                apartmentCtrl.text.trim(),
+                                cityCtrl.text.trim(),
+                                stateCtrl.text.trim(),
+                                zipCtrl.text.trim(),
+                                countryCtrl.text.trim(),
+                              ].where((s) => s.isNotEmpty).join(', ');
+                              _instructionsController.text = instructionsCtrl.text.trim();
+                            });
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Address saved successfully!'),
+                                backgroundColor: Colors.green,
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.darkGreen,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          'Save Address',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {});
-              Navigator.pop(ctx);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.darkGreen,
-            ),
-            child: const Text('Save', style: TextStyle(color: Colors.white)),
-          ),
-        ],
       ),
     );
   }
+    @override
+  void dispose() {
+    _addressController.dispose();
+    _instructionsController.dispose();
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _razorPayService?.dispose();
+    super.dispose();
+  }
+
+          // ElevatedButton(
+          //   onPressed: () {
+          //     setState(() {});
+          //     Navigator.pop(ctx);
+          //   },
+          //   style: ElevatedButton.styleFrom(
+          //     backgroundColor: AppColors.darkGreen,
+          //   ),
+          //   child: const Text('Save', style: TextStyle(color: Colors.white)),
+          // ),
+            // })
+        // ],
+    //   ),
+    // );
+  // }
 
   void _handlePlaceOrder() {
     debugPrint('Selected payment method: $selectedPaymentMethod');
@@ -815,16 +1198,5 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       context: context,
       builder: (context) => const VerificationDialog(),
     );
-  }
-
-  @override
-  void dispose() {
-    _addressController.dispose();
-    _instructionsController.dispose();
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _razorPayService?.dispose();
-    super.dispose();
   }
 }

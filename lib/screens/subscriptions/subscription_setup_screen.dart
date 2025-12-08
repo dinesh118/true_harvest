@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_new/controllers/subscription_controller.dart';
+import 'package:task_new/controllers/address_controller.dart';
 import 'package:task_new/models/advanced_subscription_model.dart';
 import 'package:task_new/models/product_model.dart';
 import 'package:task_new/utils/app_colors.dart';
@@ -558,54 +559,236 @@ class _SubscriptionSetupScreenState
   }
 
   Widget _buildDeliveryAddressSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+    return Consumer(
+      builder: (context, ref, child) {
+        final addressController = ref.watch(addressProvider);
+        final savedAddress = addressController.address;
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Delivery Address',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      // Allow user to edit address in _addressController
+                      _showAddressEditDialog();
+                    },
+                    child: const Text('Edit'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (savedAddress != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBackground,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppColors.darkGreen.withOpacity(0.2),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Contact Info
+                      Text(
+                        '${savedAddress.name}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Phone: ${savedAddress.phone}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Email: ${savedAddress.email}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      // Address Info as paragraph
+                      Text(
+                        '${savedAddress.street}, ${savedAddress.apartment}, ${savedAddress.city}, ${savedAddress.state} ${savedAddress.zip}, ${savedAddress.country}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[700],
+                          height: 1.5,
+                        ),
+                      ),
+                      if (savedAddress.deliveryInstructions != null &&
+                          savedAddress.deliveryInstructions!.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.amber[50],
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: 16,
+                                color: Colors.amber[800],
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: RichText(
+  text: TextSpan(
+    style: const TextStyle(
+      fontSize: 13,
+      color: Colors.black,
+    ),
+    children: [
+      const TextSpan(
+        text: 'Instructions: ',
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Delivery Address',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      TextSpan(
+        text: savedAddress.deliveryInstructions,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,   
+          color: Colors.black,          
+        ),
+      ),
+    ],
+  ),
+)
+
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey[300]!),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'No saved address found.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Please add a delivery address in your profile to proceed.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          _showAddressEditDialog();
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Address'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.darkGreen,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _addressController,
-            maxLines: 3,
-            decoration: InputDecoration(
-              hintText: 'Enter your complete delivery address',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+        );
+      },
+    );
+  }
+
+  void _showAddressEditDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Edit Delivery Address'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _addressController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'Complete Address',
+                  hintText: 'Enter your complete delivery address',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
               ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: AppColors.darkGreen),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _instructionsController,
+                decoration: InputDecoration(
+                  labelText: 'Delivery Instructions',
+                  hintText: 'E.g., Ring the bell twice, Call on arrival',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _instructionsController,
-            decoration: InputDecoration(
-              hintText: 'Delivery instructions (optional)',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: AppColors.darkGreen),
-              ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // Update the controllers if needed
+              Navigator.pop(ctx);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.darkGreen,
             ),
+            child: const Text('Save'),
           ),
         ],
       ),

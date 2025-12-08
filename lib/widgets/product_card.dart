@@ -4,6 +4,7 @@ import 'package:task_new/controllers/whishlist_provider.dart';
 import 'package:task_new/models/product_model.dart';
 import 'package:task_new/routes/app_routes.dart';
 import 'package:task_new/utils/app_colors.dart';
+import 'package:task_new/utils/app_constants.dart';
 
 class ProductCard extends ConsumerWidget {
   final Product product;
@@ -47,9 +48,54 @@ class ProductCard extends ConsumerWidget {
                             ),
                       ),
                     ),
+                    Positioned(child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+
+                    
+                  
+                    if (product.category.isMilk ||
+                        product.category.isCurd||product.category.isdryFruits||product.category.isfruit||product
+                        .category.issprouts)
+                      Positioned(
+                        top: 3,
+                        left: 3,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6.0,
+                            vertical: 2.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.darkGreen,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                "Subscriber",
+                                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                  color: Colors.white,
+                                  fontSize: 6,
+                                  fontWeight: FontWeight.normal
+                                  ,
+                                ),
+                              ),
+                              Text("⭐ Special ⭐",
+                                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                  color: Colors.white,
+                                  fontSize: 7,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     Positioned(
-                      top: 8,
-                      right: 8,
+
+                      top: 3,
+                      right: 2,
                       child: Consumer(
                         builder: (context, ref, child) {
                           final wishlist = ref.watch(wishlistProvider);
@@ -73,6 +119,8 @@ class ProductCard extends ConsumerWidget {
                         },
                       ),
                     ),
+                  ])
+                    )
                   ],
                 ),
               ),
