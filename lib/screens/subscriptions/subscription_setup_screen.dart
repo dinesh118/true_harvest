@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_new/controllers/subscription_controller.dart';
 import 'package:task_new/controllers/address_controller.dart';
+import 'package:task_new/controllers/subscription_service.dart';
 import 'package:task_new/models/advanced_subscription_model.dart';
 import 'package:task_new/models/product_model.dart';
+import 'package:task_new/models/subscription_plan_template.dart';
 import 'package:task_new/utils/app_colors.dart';
 import 'package:task_new/screens/subscriptions/subscription_checkout_screen.dart';
 
@@ -622,18 +624,12 @@ class _SubscriptionSetupScreenState
                       const SizedBox(height: 6),
                       Text(
                         'Phone: ${savedAddress.phone}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         'Email: ${savedAddress.email}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 10),
                       // Address Info as paragraph
@@ -665,26 +661,23 @@ class _SubscriptionSetupScreenState
                               const SizedBox(width: 8),
                               Expanded(
                                 child: RichText(
-  text: TextSpan(
-    style: const TextStyle(
-      fontSize: 13,
-      color: Colors.black,
-    ),
-    children: [
-      const TextSpan(
-        text: 'Instructions: ',
-      ),
-      TextSpan(
-        text: savedAddress.deliveryInstructions,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,   
-          color: Colors.black,          
-        ),
-      ),
-    ],
-  ),
-)
-
+                                  text: TextSpan(
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.black,
+                                    ),
+                                    children: [
+                                      const TextSpan(text: 'Instructions: '),
+                                      TextSpan(
+                                        text: savedAddress.deliveryInstructions,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -706,18 +699,12 @@ class _SubscriptionSetupScreenState
                     children: [
                       Text(
                         'No saved address found.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Please add a delivery address in your profile to proceed.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey[500],
-                        ),
+                        style: TextStyle(fontSize: 13, color: Colors.grey[500]),
                       ),
                       const SizedBox(height: 12),
                       ElevatedButton.icon(
@@ -896,7 +883,7 @@ class _SubscriptionSetupScreenState
   }
 
   double _calculateTotalPrice() {
-    final service = ref.read(advancedSubscriptionServiceProvider);
+    final service = ref.read(subscriptionServiceProvider);
     final endDate = startDate.add(
       Duration(days: widget.selectedPlan.durationInDays),
     );

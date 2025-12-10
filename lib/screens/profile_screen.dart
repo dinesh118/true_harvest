@@ -20,25 +20,25 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final _formkey = GlobalKey<FormState>();
   final _formkey1 = GlobalKey<FormState>();
-final TextEditingController nameController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
 
   final TextEditingController emailController = TextEditingController();
 
-   final TextEditingController PhoneController = TextEditingController();
+  final TextEditingController PhoneController = TextEditingController();
 
   final TextEditingController StreetController = TextEditingController();
 
-   final TextEditingController ApartmentController = TextEditingController();
+  final TextEditingController ApartmentController = TextEditingController();
 
   final TextEditingController cityController = TextEditingController();
 
-   final TextEditingController stateController = TextEditingController();
+  final TextEditingController stateController = TextEditingController();
 
   final TextEditingController ZIPController = TextEditingController();
 
-   final TextEditingController countryController = TextEditingController();
+  final TextEditingController countryController = TextEditingController();
   final TextEditingController instructionsController = TextEditingController();
-  
+
   @override
   void initState() {
     super.initState();
@@ -67,10 +67,11 @@ final TextEditingController nameController = TextEditingController();
     super.didUpdateWidget(oldWidget);
     _loadSavedAddress();
   }
+
   @override
   Widget build(BuildContext context) {
     final addressController = ref.watch(addressProvider);
-    
+
     // Sync controllers when address changes
     if (addressController.address != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -89,8 +90,8 @@ final TextEditingController nameController = TextEditingController();
         }
       });
     }
-    
-   // final addressSubtitle = addressController.addressSummary; 
+
+    // final addressSubtitle = addressController.addressSummary;
     return Scaffold(
       backgroundColor: AppColors.lightBackground,
       appBar: AppBar(
@@ -365,17 +366,20 @@ final TextEditingController nameController = TextEditingController();
         Expanded(
           child: Consumer(
             builder: (context, ref, child) {
-              final wishlistcount=ref.watch(wishlistProvider).wishlistItems.length;
-            
-           return _buildStatCard(
-              icon: Icons.favorite_outlined,
-              title: 'Wishlist',
-              value: wishlistcount.toString(),
-              color: Colors.red,
-            );
-            }
+              final wishlistcount = ref
+                  .watch(wishlistProvider)
+                  .wishlistItems
+                  .length;
+
+              return _buildStatCard(
+                icon: Icons.favorite_outlined,
+                title: 'Wishlist',
+                value: wishlistcount.toString(),
+                color: Colors.red,
+              );
+            },
           ),
-        ), 
+        ),
       ],
     );
   }
@@ -589,7 +593,11 @@ final TextEditingController nameController = TextEditingController();
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.location_on, color: Colors.white, size: 28),
+                    const Icon(
+                      Icons.location_on,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                     const SizedBox(width: 12),
                     const Expanded(
                       child: Column(
@@ -660,8 +668,9 @@ final TextEditingController nameController = TextEditingController();
                             if (value == null || value.isEmpty) {
                               return 'Please enter your email';
                             }
-                            if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
-                                .hasMatch(value)) {
+                            if (!RegExp(
+                              r'^[^@]+@[^@]+\.[^@]+',
+                            ).hasMatch(value)) {
                               return 'Please enter a valid email';
                             }
                             return null;
@@ -821,9 +830,7 @@ final TextEditingController nameController = TextEditingController();
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: Colors.grey[200]!),
-                  ),
+                  border: Border(top: BorderSide(color: Colors.grey[200]!)),
                 ),
                 child: Row(
                   children: [
@@ -862,8 +869,8 @@ final TextEditingController nameController = TextEditingController();
                               state: stateController.text.trim(),
                               zip: ZIPController.text.trim(),
                               country: countryController.text.trim(),
-                              deliveryInstructions:
-                                  instructionsController.text.trim(),
+                              deliveryInstructions: instructionsController.text
+                                  .trim(),
                             );
                             ref.read(addressProvider).updateAddress(newAddress);
                             Navigator.pop(context);
@@ -902,9 +909,6 @@ final TextEditingController nameController = TextEditingController();
       ),
     );
   }
-
-  
-
 
   void _showPaymentMethodsDialog() {
     showDialog(
@@ -1064,4 +1068,3 @@ final TextEditingController nameController = TextEditingController();
     );
   }
 }
-
