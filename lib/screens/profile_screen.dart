@@ -4,6 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:task_new/controllers/address_controller.dart';
 import 'package:task_new/controllers/address_form_controller.dart';
 import 'package:task_new/controllers/location_provider.dart';
+import 'package:task_new/controllers/subscription_service.dart';
 import 'package:task_new/controllers/whishlist_provider.dart';
 import 'package:task_new/utils/app_colors.dart';
 import 'package:task_new/routes/app_routes.dart';
@@ -33,7 +34,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (addressController.address != null) {
       formCtrl.loadAddress(addressController.address!);
     } else if (locationState.detailedAddress != null) {
-      formCtrl.loadFromLocation(locationState.detailedAddress!);
+      Future(() => formCtrl.loadFromLocation(locationState.detailedAddress!));
     }
   }
 
@@ -42,7 +43,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.didUpdateWidget(oldWidget);
     _loadAddressData();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +75,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
             // Menu Options
             _buildMenuSection('Account', [
-             // _buildMenuItem(
+              // _buildMenuItem(
               //   icon: Icons.person_outline,
               //   title: 'Personal Information',
               //   subtitle: 'Update your details',
@@ -108,8 +108,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 icon: Icons.subscriptions_outlined,
                 title: 'My Subscriptions',
                 subtitle: 'Manage subscriptions',
-                onTap: () =>
-                    AppRoutes.navigateTo(context, '/subscription-management'),
+                onTap: () => AppRoutes.navigateTo(context, '/subscription'),
               ),
               _buildMenuItem(
                 icon: Icons.favorite_outline,
@@ -313,11 +312,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _buildStatCard(
-            icon: Icons.subscriptions_outlined,
-            title: 'Subscriptions',
-            value: '3',
-            color: Colors.orange,
+          child: Builder(
+            builder: (context) {
+              final subscriptionsCount = ref.watch(
+                subscriptionServiceProvider.select(
+                  (val) => val.activeSubscriptions.length,
+                ),
+              );
+
+              return _buildStatCard(
+                icon: Icons.subscriptions_outlined,
+                title: 'Subscriptions',
+                value: subscriptionsCount.toString(),
+                color: Colors.orange,
+              );
+            },
           ),
         ),
         const SizedBox(width: 12),
@@ -531,7 +540,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       barrierDismissible: false,
       builder: (context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Container(
             constraints: BoxConstraints(
               maxHeight: MediaQuery.of(context).size.height * 0.85,
@@ -556,7 +567,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.location_on, color: Colors.white, size: 28),
+                      const Icon(
+                        Icons.location_on,
+                        color: Colors.white,
+                        size: 28,
+                      ),
                       const SizedBox(width: 12),
                       const Expanded(
                         child: Column(
@@ -590,21 +605,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 // Content
                 Flexible(
-fit: FlexFit.loose,
+                  fit: FlexFit.loose,
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Address Form (personal info hidden for dialog)
-                       // const SizedBox(height: 8),
+                        // const SizedBox(height: 8),
                         AddressFormFields(
                           includePersonalInfo: false,
                           includeInstructions: false,
                           formKey: _dialogFormKey,
                         ),
-                      //  const SizedBox(height: 24),
-                  
+
+                        //  const SizedBox(height: 24),
                       ],
                     ),
                   ),
@@ -613,74 +628,82 @@ fit: FlexFit.loose,
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: Colors.grey[200]!),
-                    ),
+                    border: Border(top: BorderSide(color: Colors.grey[200]!)),
                   ),
-                  child: Consumer(builder: (ctx, ref, _) {
-                    return Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              side: BorderSide(color: Colors.grey[300]!),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                  child: Consumer(
+                    builder: (ctx, ref, _) {
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                side: BorderSide(color: Colors.grey[300]!),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                               ),
-                            ),
-                            child: const Text(
-                              'Cancel',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              if (_dialogFormKey.currentState!.validate()) {
-                                final formCtrl = ref.read(addressFormProvider);
-                                final addressCtrl = ref.read(addressProvider);
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                if (_dialogFormKey.currentState!.validate()) {
+                                  final formCtrl = ref.read(
+                                    addressFormProvider,
+                                  );
+                                  final addressCtrl = ref.read(addressProvider);
 
-                                final address = formCtrl.buildAddressModel();
-                                addressCtrl.addAddress(address);
-                                // Select the newly added address and sync form
-                                addressCtrl.selectAddressById(address.id);
-                                formCtrl.loadAddress(address);
+                                  final address = formCtrl.buildAddressModel();
+                                  addressCtrl.addAddress(address);
+                                  // Select the newly added address and sync form
+                                  addressCtrl.selectAddressById(address.id);
+                                  formCtrl.loadAddress(address);
 
-                                Navigator.pop(context);
-   Fluttertoast.showToast(msg: 'Address saved successfully!',
+                                  Navigator.pop(context);
+                                  Fluttertoast.showToast(
+                                    msg: 'Address saved successfully!',
                                     backgroundColor: AppColors.darkGreen,
                                     textColor: AppColors.white,
-                                    gravity: ToastGravity.BOTTOM);
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.darkGreen,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                                    gravity: ToastGravity.BOTTOM,
+                                  );
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.darkGreen,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                               ),
-                            ),
-                            child: const Text(
-                              'Save Address',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
+                              child: const Text(
+                                'Save Address',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    );
-                  }),
+                        ],
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -691,49 +714,54 @@ fit: FlexFit.loose,
   }
 
   Widget _buildSavedAddressesPanel() {
-    return Consumer(builder: (context, ref, _) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.location_on_outlined, size: 20),
-                const SizedBox(width: 8),
-                const Text('Saved Addresses', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: () => _showAddressesDialog(),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add New'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            AddressSelectionList(
-              onAddressSelected: () {
-                // Address selection syncs to form controller automatically
-              },
-              onLocationSelected: () {
-                // Location selection syncs to form controller automatically
-              },
-            ),
-          ],
-        ),
-      );
-    });
+    return Consumer(
+      builder: (context, ref, _) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.location_on_outlined, size: 20),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Saved Addresses',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: () => _showAddressesDialog(),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Add New'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              AddressSelectionList(
+                onAddressSelected: () {
+                  // Address selection syncs to form controller automatically
+                },
+                onLocationSelected: () {
+                  // Location selection syncs to form controller automatically
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _showPaymentMethodsDialog() {
@@ -862,32 +890,35 @@ fit: FlexFit.loose,
     );
   }
 
-void _showLogoutDialog() {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('Logout'),
-      content: const Text('Are you sure you want to logout? This will clear your saved addresses.'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text(
+          'Are you sure you want to logout? This will clear your saved addresses.',
         ),
-        TextButton(
-          onPressed: () async {
-            // Clear addresses from SharedPreferences
-            await ref.read(addressProvider).clearAll();
-            Navigator.pop(context);
-            // Navigate to login screen
-            AppRoutes.navigateTo(context, '/login');
-          },
-          style: TextButton.styleFrom(foregroundColor: Colors.red),
-          child: const Text('Logout'),
-        ),
-      ],
-    ),
-  );
-}
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              // Clear addresses from SharedPreferences
+              await ref.read(addressProvider).clearAll();
+              Navigator.pop(context);
+              // Navigate to login screen
+              AppRoutes.navigateTo(context, '/login');
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+  }
+
   // void _showLogoutDialog() {
   //   showDialog(
   //     context: context,
@@ -912,6 +943,4 @@ void _showLogoutDialog() {
   //     ),
   //   );
   // }
-
 }
-

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_new/controllers/subscription_service.dart';
 import 'package:task_new/models/advanced_subscription_model.dart';
+import 'package:task_new/screens/subscriptions/select_product_screen.dart';
+import 'package:task_new/screens/subscriptions/subscription_details_screen.dart';
+import 'package:task_new/screens/subscriptions/subscription_plan_screen.dart';
 import 'package:task_new/utils/app_colors.dart';
 
 class SubscriptionScreen extends ConsumerWidget {
@@ -97,17 +100,21 @@ class SubscriptionScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Navigate to create subscription screen
-          // Navigator.push(context, MaterialPageRoute(
-          //   builder: (context) => const CreateSubscriptionScreen(),
-          // ));
+          // Navigate to product selection screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const SelectProductScreen(),
+            ),
+          );
         },
         icon: const Icon(Icons.add, color: AppColors.white),
         label: const Text(
           'New Subscription',
-          style: TextStyle(color: AppColors.white),
+          style: TextStyle(color: AppColors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.darkGreen,
+        elevation: 4.0,
       ),
     );
   }
@@ -123,14 +130,14 @@ class SubscriptionScreen extends ConsumerWidget {
       child: InkWell(
         onTap: () {
           // Navigate to subscription details
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (context) => SubscriptionDetailsScreen(
-          //       subscription: subscription,
-          //     ),
-          //   ),
-          // );
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => SubscriptionDetailsScreen(
+                subscriptionId: subscription.subscriptionId,
+              ),
+            ),
+          );
         },
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -313,25 +320,25 @@ class SubscriptionScreen extends ConsumerWidget {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () {
-                // Navigate to create subscription screen
-                // Navigator.push(context, MaterialPageRoute(
-                //   builder: (context) => const CreateSubscriptionScreen(),
-                // ));
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Create Subscription'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.darkGreen,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-              ),
-            ),
+            // const SizedBox(height: 32),
+            // ElevatedButton.icon(
+            //   onPressed: () {
+            //     // Navigate to create subscription screen
+            //     // Navigator.push(context, MaterialPageRoute(
+            //     //   builder: (context) => const CreateSubscriptionScreen(),
+            //     // ));
+            //   },
+            //   icon: const Icon(Icons.add),
+            //   label: const Text('Create Subscription'),
+            //   style: ElevatedButton.styleFrom(
+            //     backgroundColor: AppColors.darkGreen,
+            //     foregroundColor: Colors.white,
+            //     padding: const EdgeInsets.symmetric(
+            //       horizontal: 24,
+            //       vertical: 12,
+            //     ),
+            //   ),
+            // ),
           ],
         ),
       ),

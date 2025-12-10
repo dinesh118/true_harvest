@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:task_new/controllers/subscription_controller.dart';
 import 'package:task_new/controllers/subscription_service.dart';
 import 'package:task_new/models/advanced_subscription_model.dart';
 import 'package:task_new/utils/app_colors.dart';
@@ -8,8 +7,7 @@ import 'package:task_new/utils/app_colors.dart';
 class SubscriptionDetailsScreen extends ConsumerStatefulWidget {
   final String subscriptionId;
 
-  const SubscriptionDetailsScreen({Key? key, required this.subscriptionId})
-    : super(key: key);
+  const SubscriptionDetailsScreen({super.key, required this.subscriptionId});
 
   @override
   ConsumerState<SubscriptionDetailsScreen> createState() =>
@@ -215,6 +213,7 @@ class _SubscriptionDetailsScreenState
                   Icons.currency_rupee,
                 ),
               ),
+              SizedBox(width: 10),
               Expanded(
                 child: _buildStatItem(
                   'Remaining',

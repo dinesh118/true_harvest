@@ -47,7 +47,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (addressCtrl.address != null) {
         formCtrl.loadAddress(addressCtrl.address!);
       } else if (locationState.detailedAddress != null) {
-        formCtrl.loadFromLocation(locationState.detailedAddress!);
+        Future(() => formCtrl.loadFromLocation(locationState.detailedAddress!));
       }
     });
   }
@@ -56,7 +56,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final locationState = ref.read(locationProvider);
     if (locationState.detailedAddress == null) return;
 
-    ref.read(addressFormProvider).loadFromLocation(locationState.detailedAddress!);
+    Future(
+      () => ref
+          .read(addressFormProvider)
+          .loadFromLocation(locationState.detailedAddress!),
+    );
 
     Fluttertoast.showToast(
       msg: "Current location selected",
@@ -91,14 +95,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           setState(() {
             isProcessingOrder = false;
           });
-        
 
-          Fluttertoast.showToast(msg: "Payment failed, please try again",
-              toastLength: Toast.LENGTH_SHORT,
-              gravity: ToastGravity.BOTTOM,
-              backgroundColor: AppColors.red,
-              textColor: AppColors.white,
-              fontSize: 16.0
+          Fluttertoast.showToast(
+            msg: "Payment failed, please try again",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: AppColors.red,
+            textColor: AppColors.white,
+            fontSize: 16.0,
           );
         }
       },
@@ -118,7 +122,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final verificationService = ref.watch(verificationServiceProvider);
     final coupon = ref.watch(couponProvider);
     final subtotal = cartController.subtotal;
- final addressController = ref.watch(addressProvider);
+    final addressController = ref.watch(addressProvider);
     final deliveryFee = _getDeliveryFee();
     final totalBeforeDiscount = subtotal + deliveryFee;
 
@@ -195,9 +199,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             children: [
                               Row(
                                 children: [
-                                  const Icon(Icons.location_on, color: AppColors.darkGreen, size: 18),
+                                  const Icon(
+                                    Icons.location_on,
+                                    color: AppColors.darkGreen,
+                                    size: 18,
+                                  ),
                                   const SizedBox(width: 8),
-                                  const Text('Saved Addresses', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                                  const Text(
+                                    'Saved Addresses',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                   const Spacer(),
                                   TextButton.icon(
                                     onPressed: _showAddressDialog,
@@ -594,99 +608,108 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       barrierDismissible: false,
       builder: (context) {
         return Dialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Container(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.9,
-                maxWidth: MediaQuery.of(context).size.width * 0.95,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Header
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppColors.darkGreen,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        topRight: Radius.circular(16),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.location_on, color: Colors.white, size: 28),
-                        const SizedBox(width: 12),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Add New Address',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.white,
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                'Enter your delivery address',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.white70,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: const Icon(Icons.close, color: Colors.white),
-                        ),
-                      ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.9,
+              maxWidth: MediaQuery.of(context).size.width * 0.95,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.darkGreen,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
                     ),
                   ),
-                  // Content
-                  Flexible(
-                    fit: FlexFit.loose,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Address Form using new widget
-                          Consumer(builder: (ctx, ref2, _) {
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Add New Address',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.white,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Enter your delivery address',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: const Icon(Icons.close, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+                // Content
+                Flexible(
+                  fit: FlexFit.loose,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Address Form using new widget
+                        Consumer(
+                          builder: (ctx, ref2, _) {
                             return AddressFormFields(
                               includePersonalInfo: false,
                               formKey: _dialogFormKey,
                             );
-                          }),
-                          const SizedBox(height: 24),
-                        ],
-                      ),
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                      ],
                     ),
                   ),
-                  // Action Buttons
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      border: Border(
-                        top: BorderSide(color: Colors.grey[200]!),
-                      ),
-                    ),
-                    child: Consumer(builder: (ctx, ref, _) {
+                ),
+                // Action Buttons
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: Colors.grey[200]!)),
+                  ),
+                  child: Consumer(
+                    builder: (ctx, ref, _) {
                       return Row(
                         children: [
                           Expanded(
                             child: OutlinedButton(
                               onPressed: () => Navigator.pop(ctx),
                               style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                                 side: BorderSide(color: Colors.grey[300]!),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -708,24 +731,29 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                               onPressed: () {
                                 // Validate and save new address
                                 if (_dialogFormKey.currentState!.validate()) {
-                                    final formCtrl = ref.read(addressFormProvider);
-                                    final addressCtrl = ref.read(addressProvider);
-                                    final address = formCtrl.buildAddressModel();
-                                    addressCtrl.addAddress(address);
-                                    // Select newly added address and sync form
-                                    addressCtrl.selectAddressById(address.id);
-                                    formCtrl.loadAddress(address);
-                                    Navigator.pop(ctx);
-                                   
-                                    Fluttertoast.showToast(msg: 'Address saved successfully!',
-                                        backgroundColor: AppColors.darkGreen,
-                                        textColor: AppColors.white,
-                                    );
-                                  }
+                                  final formCtrl = ref.read(
+                                    addressFormProvider,
+                                  );
+                                  final addressCtrl = ref.read(addressProvider);
+                                  final address = formCtrl.buildAddressModel();
+                                  addressCtrl.addAddress(address);
+                                  // Select newly added address and sync form
+                                  addressCtrl.selectAddressById(address.id);
+                                  formCtrl.loadAddress(address);
+                                  Navigator.pop(ctx);
+
+                                  Fluttertoast.showToast(
+                                    msg: 'Address saved successfully!',
+                                    backgroundColor: AppColors.darkGreen,
+                                    textColor: AppColors.white,
+                                  );
+                                }
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.darkGreen,
-                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
@@ -742,11 +770,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           ),
                         ],
                       );
-                    }),
+                    },
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
+          ),
         );
       },
     );
@@ -758,20 +787,20 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     super.dispose();
   }
 
-          // ElevatedButton(
-          //   onPressed: () {
-          //     setState(() {});
-          //     Navigator.pop(ctx);
-          //   },
-          //   style: ElevatedButton.styleFrom(
-          //     backgroundColor: AppColors.darkGreen,
-          //   ),
-          //   child: const Text('Save', style: TextStyle(color: Colors.white)),
-          // ),
-            // })
-        // ],
-    //   ),
-    // );
+  // ElevatedButton(
+  //   onPressed: () {
+  //     setState(() {});
+  //     Navigator.pop(ctx);
+  //   },
+  //   style: ElevatedButton.styleFrom(
+  //     backgroundColor: AppColors.darkGreen,
+  //   ),
+  //   child: const Text('Save', style: TextStyle(color: Colors.white)),
+  // ),
+  // })
+  // ],
+  //   ),
+  // );
   // }
 
   void _handlePlaceOrder() {

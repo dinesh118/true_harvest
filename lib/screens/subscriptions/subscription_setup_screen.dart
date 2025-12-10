@@ -11,9 +11,9 @@ import 'package:task_new/models/product_model.dart';
 import 'package:task_new/models/address_model.dart';
 import 'package:task_new/models/address_form_state.dart';
 import 'package:task_new/models/subscription_plan_template.dart';
-import 'package:task_new/utils/app_colors.dart';
 import 'package:task_new/screens/subscriptions/subscription_checkout_screen.dart';
 import 'package:task_new/widgets/address_form_fields.dart';
+import 'package:task_new/utils/app_colors.dart';
 
 class SubscriptionSetupScreen extends ConsumerStatefulWidget {
   final Product product;
@@ -21,11 +21,11 @@ class SubscriptionSetupScreen extends ConsumerStatefulWidget {
   final SubscriptionPlanTemplate selectedPlan;
 
   const SubscriptionSetupScreen({
-    Key? key,
+    super.key,
     required this.product,
     required this.selectedUnit,
     required this.selectedPlan,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<SubscriptionSetupScreen> createState() =>
@@ -69,7 +69,7 @@ class _SubscriptionSetupScreenState
     if (addressController.address != null) {
       formCtrl.loadAddress(addressController.address!);
     } else if (locationState.detailedAddress != null) {
-      formCtrl.loadFromLocation(locationState.detailedAddress!);
+      Future(() => formCtrl.loadFromLocation(locationState.detailedAddress!));
     }
   }
 
@@ -98,6 +98,7 @@ class _SubscriptionSetupScreenState
                   // Delivery Pattern Selection
                   // _buildDeliveryPatternSection(),
                   // const SizedBox(height: 20),
+                  //Delivery Timings Selection
 
                   // Start Date Selection
                   _buildStartDateSection(),
@@ -581,9 +582,11 @@ class _SubscriptionSetupScreenState
       builder: (context, ref, child) {
         final addressController = ref.watch(addressProvider);
         final savedAddress = addressController.address;
-        final locationaddress=ref.watch(locationProvider);
-        final isUsingLocation=addressController.address==null && locationaddress.detailedAddress!=null;
-        final locationdata=locationaddress.detailedAddress;
+        final locationaddress = ref.watch(locationProvider);
+        final isUsingLocation =
+            addressController.address == null &&
+            locationaddress.detailedAddress != null;
+        final locationdata = locationaddress.detailedAddress;
 
         return Container(
           padding: const EdgeInsets.all(16),
@@ -633,7 +636,7 @@ class _SubscriptionSetupScreenState
                     children: [
                       // Complete Address as paragraph
                       Text(
-                        //'${savedAddress.name}, ${savedAddress.phone}, ${savedAddress.email}, 
+                        //'${savedAddress.name}, ${savedAddress.phone}, ${savedAddress.email},
                         '${savedAddress.street}, ${savedAddress.apartment}, ${savedAddress.city}, ${savedAddress.state} ${savedAddress.zip}, ${savedAddress.country}',
                         style: TextStyle(
                           fontSize: 14,
@@ -785,19 +788,23 @@ class _SubscriptionSetupScreenState
     // Initialize form controller with location data
     if (locationdata != null) {
       final formCtrl = ref.read(addressFormProvider);
-      formCtrl.loadAddress(AddressModel(
-        id: '',
-        name: locationdata.name,
-        email: locationdata.email,
-        phone: locationdata.phone,
-        street: locationdata.street,
-        apartment: locationdata.apartment,
-        city: locationdata.city,
-        state: locationdata.state,
-        zip: locationdata.zip,
-        country: locationdata.country,
-        deliveryInstructions: locationdata.instructions.isEmpty ? null : locationdata.instructions,
-      ));
+      formCtrl.loadAddress(
+        AddressModel(
+          id: '',
+          name: locationdata.name,
+          email: locationdata.email,
+          phone: locationdata.phone,
+          street: locationdata.street,
+          apartment: locationdata.apartment,
+          city: locationdata.city,
+          state: locationdata.state,
+          zip: locationdata.zip,
+          country: locationdata.country,
+          deliveryInstructions: locationdata.instructions.isEmpty
+              ? null
+              : locationdata.instructions,
+        ),
+      );
     }
 
     final _dialogFormKey = GlobalKey<FormState>();
@@ -863,82 +870,85 @@ class _SubscriptionSetupScreenState
                 fit: FlexFit.loose,
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(20),
-                  child: Consumer(builder: (ctx, ref2, _) {
-                    return AddressFormFields(
-                      includePersonalInfo: false,
-                      formKey: _dialogFormKey,
-                    );
-                  }),
+                  child: Consumer(
+                    builder: (ctx, ref2, _) {
+                      return AddressFormFields(
+                        includePersonalInfo: false,
+                        formKey: _dialogFormKey,
+                      );
+                    },
+                  ),
                 ),
               ),
               // Action Buttons
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: Colors.grey[200]!),
-                  ),
+                  border: Border(top: BorderSide(color: Colors.grey[200]!)),
                 ),
-                child: Consumer(builder: (ctx, ref2, _) {
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            side: BorderSide(color: Colors.grey[300]!),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                child: Consumer(
+                  builder: (ctx, ref2, _) {
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              side: BorderSide(color: Colors.grey[300]!),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
-                          ),
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            if (_dialogFormKey.currentState!.validate()) {
-                              final address = ref2.read(addressFormProvider).buildAddressModel();
-                              ref2.read(addressProvider).addAddress(address);
-                              Navigator.pop(ctx);
-                              Fluttertoast.showToast(
-                                msg: "Address saved successfully",
-                                backgroundColor: AppColors.darkGreen,
-                                textColor: AppColors.white,
-                                gravity: ToastGravity.BOTTOM,
-                              );
-                            }
-                            
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.darkGreen,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            'Save Address',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  );
-                }),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              if (_dialogFormKey.currentState!.validate()) {
+                                final address = ref2
+                                    .read(addressFormProvider)
+                                    .buildAddressModel();
+                                ref2.read(addressProvider).addAddress(address);
+                                Navigator.pop(ctx);
+                                Fluttertoast.showToast(
+                                  msg: "Address saved successfully",
+                                  backgroundColor: AppColors.darkGreen,
+                                  textColor: AppColors.white,
+                                  gravity: ToastGravity.BOTTOM,
+                                );
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.darkGreen,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              'Save Address',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
             ],
           ),
@@ -1016,6 +1026,7 @@ class _SubscriptionSetupScreenState
       ),
     );
   }
+
   double _calculateTotalPrice() {
     final service = ref.read(subscriptionServiceProvider);
     final endDate = startDate.add(
@@ -1132,7 +1143,7 @@ class _SubscriptionSetupScreenState
     final savedAddress = addrCtrl.address;
     final locationaddress = ref.read(locationProvider);
     final isUsingLocation =
-      addrCtrl.address == null && locationaddress.detailedAddress != null;
+        addrCtrl.address == null && locationaddress.detailedAddress != null;
     final locationdata = locationaddress.detailedAddress;
 
     // Build address string - prefer saved address, then location data, then manual entry
@@ -1147,7 +1158,7 @@ class _SubscriptionSetupScreenState
         savedAddress.country,
       ].where((s) => s.isNotEmpty).join(', ');
     } else if (isUsingLocation && locationdata != null) {
-      deliveryAddress = locationdata.fullAddress.isEmpty 
+      deliveryAddress = locationdata.fullAddress.isEmpty
           ? [
               locationdata.street,
               locationdata.city,
