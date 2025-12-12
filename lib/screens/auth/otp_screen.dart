@@ -105,7 +105,10 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                             filled: true,
                             fillColor: Colors.white,
                           ),
-                          onChanged: (value) => _onOtpChanged(value, index),
+                          onChanged: (value) {
+                            setState(() {});
+                            _onOtpChanged(value, index);
+                          },
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return '';
@@ -138,12 +141,15 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 10.0),
                     child: Consumer(builder: (ctx, ref2, _) {
                       final auth = ref2.watch(authProvider);
-                        final canVerify = !isLoading && auth.otpRequested && auth.mobileNumber.length == 10;
-
+      final otpText = _otpControllers.map((c) => c.text).join();
+ final canVerify = !isLoading && 
+          auth.otpRequested && 
+          auth.mobileNumber.length == 10 && 
+          otpText.length == 6; 
                       return ElevatedButton(
                         onPressed: canVerify ? _verifyOtp : null,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0D3B2E),
+                        backgroundColor: canVerify ?  AppColors.darkGreen : AppColors.grey,
                         minimumSize: const Size(double.infinity, 56),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -151,9 +157,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                       ),
                         child: isLoading
                             ? const CircularProgressIndicator()
-                            : const Text(
+                            :  Text(
                                 "Verify & Login",
-                                style: TextStyle(fontSize: 18),
+                                style: TextStyle(fontSize: 18,color: canVerify?AppColors.white:AppColors.grey),
                               ),
                       );
                     }),
@@ -229,7 +235,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               ),
             );
 
-          }} else {
+          } else {
             // Navigate to registration screen
             Navigator.pushReplacement(
               context,
@@ -239,7 +245,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 ),
               ),
             );
-          }
+          }}
         }else{
           CustomFloatingToast.showToast('Invalid OTP. Please try again.');
         }

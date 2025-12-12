@@ -147,7 +147,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ? CircularProgressIndicator(
                           color: AppColors.lightBackground,
                         )
-                      : Text("Send OTP", style: TextStyle(fontSize: 18)),
+                      : Text("Send OTP", style: TextStyle(fontSize: 18,
+                      color:authViewController.mobileNumber.length == 10 && !isLoading
+                        ? AppColors.white
+                        : Colors.grey.shade400, )),
                 ),
 
                 const Spacer(),
