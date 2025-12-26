@@ -1,5 +1,5 @@
 # ---------- Build Stage ----------
-FROM FROM ghcr.io/cirruslabs/flutter:3.40.0-0.2.pre As build
+FROM ghcr.io/cirruslabs/flutter:3.40.0-0.2.pre As build
 
 WORKDIR /app
 
